@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+
+<!-- Ícone de bandagem para o site -->
+<link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2966/2966488.png" type="image/png">
+
+<!-- Canonical / OG para o domínio solicitado -->
+<link rel="canonical" href="https://diaginosticowwwhealt.com/">
+<meta property="og:url" content="https://diaginosticowwwhealt.com">
+<meta property="og:title" content="HealthTriage — Diagnóstico Interativo">
+<meta property="og:description" content="Triagem interativa com probabilidades. Ferramenta educativa.">
+<meta property="og:type" content="website">
+
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>HealthTriage — Diagnóstico Interativo</title>
+<style>
+  :root{
+    --bg1:#0f1724; --bg2:#071129; --card:#0b1220; --text:#e6eef8; --muted:#9bb0d6;
+    --accent1:#6C63FF; --accent2:#00C2A8; --glass: rgba(255,255,255,0.04);
+    --radius:12px;
+  }
+  [data-theme="light"]{
+    --bg1:#e6f0ff; --bg2:#f7fff7; --card:#ffffff; --text:#222; --muted:#606f86; --glass: rgba(0,0,0,0.04);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:Inter, "Segoe UI", Roboto, Arial,sans-serif;
+    color:var(--text); background: linear-gradient(135deg,var(--bg1),var(--bg2));
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+  }
+
+  /* header */
+  header{display:flex;justify-content:space-between;align-items:center;padding:14px 22px}
+  .brand{display:flex;gap:12px;align-items:center}
+  .logo svg{width:48px;height:48px}
+  .title{font-weight:800;font-size:18px;letter-spacing:0.2px}
+  .subtitle{font-size:12px;color:var(--muted)}
+
+  /* wave theme toggle */
+  .toggle-wrap{position:relative}
+  .theme-toggle{position:relative;display:inline-flex;align-items:center;gap:8px;padding:8px;border-radius:999px;background:var(--glass);border:1px solid rgba(255,255,255,0.03);cursor:pointer;backdrop-filter: blur(6px);}
+  .ps-wave{width:56px;height:28px;position:relative;overflow:hidden;border-radius:999px}
+  .ps-wave .wave{
+    position:absolute;top:0;left:-40%;height:100%;width:40%;
+    background: linear-gradient(90deg,var(--accent1),var(--accent2));
+    transform:skewX(-12deg);
+    animation:wave 1.6s linear infinite;
+  }
+  @keyframes wave{0%{left:-40%}50%{left:60%}100%{left:120%}}
+
+  /* layout */
+  .wrap{max-width:1150px;margin:12px auto;padding:12px}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:0 10px 30px rgba(2,6,23,0.35);padding:14px;margin-bottom:14px;border:1px solid rgba(255,255,255,0.02)}
+  .row{display:flex;gap:12px;align-items:center}
+  .muted{color:var(--muted);font-size:13px}
+  input[type="text"], input[type="email"], input[type="number"], select, textarea{
+    width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);
+    background:transparent;color:var(--text);font-size:14px;
+  }
+
+  /* login */
+  .login-grid{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+  .login-left{flex:1;min-width:220px}
+  .login-right{width:320px;min-width:220px}
+
+  /* search and controls */
+  .controls{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:12px}
+  .search-box{display:flex;gap:8px;align-items:center;flex:1}
+  .search-box input{padding:10px 12px;border-radius:999px;border:1px solid rgba(255,255,255,0.03);width:100%}
+  .small-btn{padding:8px 12px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent1),#5b9bff);color:white;cursor:pointer}
+
+  /* grid of symptom cards */
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+  @media(max-width:1100px){.grid{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:420px){.grid{grid-template-columns:1fr}}
+
+  .sym-card{padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+    cursor:pointer;display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,0.02);transition:transform .12s ease,box-shadow .12s}
+  .sym-card:hover{transform:translateY(-6px);box-shadow:0 12px 30px rgba(0,0,0,0.25)}
+  .sym-card .txt{flex:1;text-align:left}
+  .sym-card.checked{background: linear-gradient(90deg, rgba(108,99,255,0.12), rgba(0,194,168,0.06));border:1px solid rgba(108,99,255,0.18)}
+
+  /* selection topbar */
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:8px}
+  .badge{background:var(--glass);padding:8px 12px;border-radius:999px;color:var(--muted);font-weight:700}
+
+  /* questions */
+  .questions{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+  .question{display:flex;gap:12px;align-items:center}
+  .question label{min-width:260px;font-weight:700}
+
+  /* loader */
+  .loader{height:12px;background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));border-radius:999px;overflow:hidden}
+  .loader > i{display:block;height:100%;width:40%;background:linear-gradient(90deg,var(--accent1),var(--accent2));animation:loadanim 1.1s linear infinite}
+  @keyframes loadanim{0%{transform:translateX(-120%)}50%{transform:translateX(120%)}100%{transform:translateX(300%)}}
+
+  /* result */
+  .result-grid{display:grid;grid-template-columns:280px 1fr;gap:12px}
+  .severity{padding:18px;border-radius:10px;color:white;font-weight:800;text-align:center}
+  .azul{background:#4a9ff5}
+  .verde{background:#388E3C}
+  .amarelo{background:#FBC02D;color:#222}
+  .laranja{background:#FB8C00}
+  .vermelho{background:#D32F2F}
+
+  .diagnosis-list{background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);padding:12px;border-radius:10px;min-height:140px;border:1px solid rgba(255,255,255,0.02)}
+  .diag-item{padding:10px;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.01);display:flex;justify-content:space-between;align-items:center}
+  .percent{font-weight:800}
+
+  /* footer small */
+  footer{padding:8px 22px;text-align:center;color:var(--muted);font-size:13px}
+  .hidden{display:none}
+  .fade{transition:all .18s ease}
+</style>
+</head>
+<body data-theme="dark">
+<header>
+  <div class="brand">
+    <div class="logo" aria-hidden>
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="gr" x1="0" x2="1"><stop offset="0" stop-color="#6C63FF"/><stop offset="1" stop-color="#00C2A8"/></linearGradient></defs>
+        <rect x="6" y="6" width="52" height="52" rx="12" fill="url(#gr)"/>
+        <path d="M32 20c-6 0-10 4-10 10s4 10 10 10 10-4 10-10-4-10-10-10zm0 6a4 4 0 100 8 4 4 0 000-8z" fill="#fff"/>
+      </svg>
+    </div>
+    <div>
+      <div class="title">HealthTriage</div>
+      <div class="subtitle">Triagem interativa com probabilidades</div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="muted" id="userInfo">Não logado</div>
+    <div class="toggle-wrap">
+      <div class="theme-toggle" id="themeToggle" title="Mudar tema">
+        <div class="ps-wave" aria-hidden><div class="wave"></div></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- LOGIN -->
+  <div class="card" id="loginCard">
+    <div class="login-grid">
+      <div class="login-left">
+        <h2>Entrar / Cadastrar</h2>
+        <div class="muted">Use um email Gmail real (validação local). Usuários e relatórios salvos localmente.</div>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <div style="flex:1;min-width:180px">
+            <label class="muted">Nome</label><input id="nameInput" type="text" placeholder="Seu nome completo">
+          </div>
+          <div style="flex:1;min-width:180px">
+            <label class="muted">Email (Gmail)</label><input id="emailInput" type="email" placeholder="exemplo@gmail.com">
+          </div>
+        </div>
+      </div>
+      <div class="login-right">
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+          <div class="muted">Salvar dados localmente</div>
+          <div style="display:flex;gap:8px">
+            <button class="small-btn" onclick="loadDemo()">Demo</button>
+            <button class="small-btn" onclick="handleLogin()">Entrar</button>
+          </div>
+          <div id="loginMsg" class="muted" style="margin-top:6px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SYMPTOMS -->
+  <div class="card hidden" id="symptomsCard">
+    <div class="row" style="align-items:flex-start;justify-content:space-between">
+      <div>
+        <h3>Selecione sintomas</h3>
+        <div class="muted">Clique nas caixas. Use a pesquisa para encontrar sintomas rápido.</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="badge" id="selectedCount">0</div>
+        <button class="small-btn" onclick="clearAll()">Limpar</button>
+        <button class="small-btn" onclick="confirmSymptoms()">Confirmar</button>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="search-box" style="flex:1">
+        <input id="searchInput" type="text" placeholder="Pesquisar sintoma (ex: febre, tosse, dor...)">
+      </div>
+      <div style="display:flex;gap:8px">
+        <label class="muted">Filtrar</label>
+        <select id="filterSelect" style="width:180px">
+          <option value="all">Todos os sintomas</option>
+          <option value="resp">Respiratórios</option>
+          <option value="gastro">Gastrointestinais</option>
+          <option value="neuro">Neurológicos</option>
+          <option value="skin">Cutâneos</option>
+          <option value="cardio">Cardiovasculares</option>
+          <option value="endo">Endócrinos/Metabólicos</option>
+          <option value="oto">Otorrino</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid" id="symGrid"></div>
+
+    <div style="display:flex;gap:8px;align-items:center;margin-top:12px">
+      <input id="otherCheck" type="checkbox"><label class="muted">Outros (descrever abaixo)</label>
+      <input id="otherText" type="text" placeholder="Descreva algo que não encontrou" style="flex:1">
+    </div>
+  </div>
+
+  <!-- QUESTIONS -->
+  <div class="card hidden" id="questionsCard">
+    <h3>Perguntas adicionais</h3>
+    <div class="muted">As perguntas abaixo foram montadas com base nos sintomas selecionados para aumentar a precisão.</div>
+    <div class="questions" id="questionsWrap"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+      <button class="small-btn" onclick="backToSymptoms()">Voltar</button>
+      <button class="small-btn" onclick="runDiagnosis()">Analisar</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="card hidden" id="resultCard">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <h3>Resultado</h3>
+      <div class="muted">Importante: este sistema é informativo — procure avaliação médica quando indicado.</div>
+    </div>
+
+    <div id="loadingArea" style="margin-top:12px"></div>
+
+    <div id="finalArea" class="hidden" style="margin-top:12px">
+      <div class="result-grid">
+        <div>
+          <div id="severityBadge" class="severity azul">AZUL</div>
+          <div style="margin-top:12px;padding:12px;border-radius:10px;background:var(--glass);">
+            <div style="font-weight:800">Ação sugerida</div>
+            <div id="actionText" class="muted" style="margin-top:8px"></div>
+          </div>
+          <div style="margin-top:12px">
+            <button class="small-btn" onclick="saveReport()">Salvar relatório</button>
+            <button class="small-btn" onclick="restart()">Nova avaliação</button>
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-weight:800">Condições prováveis (estimativa)</div>
+            <div class="muted">Percentual estimado</div>
+          </div>
+          <div id="diagnosisList" class="diagnosis-list" style="margin-top:8px"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<footer>
+  <div class="muted">HealthTriage — Ferramenta educativa de triagem. NÃO substitui avaliação médica presencial. Dados salvos localmente.</div>
+</footer>
+
+<script>
+/* --------------------- DOMÍNIO / REDIRECIONAMENTO --------------------- */
+/* Se alguém abrir em www.com, redireciona para o domínio solicitado */
+(function enforceDomain(){
+  try{
+    if (location.hostname === "www.com") {
+      location.replace("https://diaginosticowwwhealt.com" + location.pathname + location.search + location.hash);
+    }
+  }catch(e){}
+})();
+
+/* ---------------------
+  Full interactive JS app
+   - search, filters
+   - "other" symptom included in scoring
+   - many conditions and probabilities
+   - dynamic questions
+   - theme toggle (waves)
+   - localStorage for users/reports
+---------------------- */
+
+/* ---------------- Data: symptoms (ids, text, category) ---------------- */
+/* EXPANDIDO: +60 sintomas aproximadamente */
+const SYMPTOMS = [
+  {id:1,text:"Febre",cat:"all"},
+  {id:2,text:"Calafrios",cat:"all"},
+  {id:3,text:"Dor de cabeça",cat:"neuro"},
+  {id:4,text:"Tontura",cat:"neuro"},
+  {id:5,text:"Confusão mental",cat:"neuro"},
+  {id:6,text:"Desmaio / perda de consciência",cat:"neuro"},
+  {id:7,text:"Náusea",cat:"gastro"},
+  {id:8,text:"Vômito",cat:"gastro"},
+  {id:9,text:"Diarreia",cat:"gastro"},
+  {id:10,text:"Dor abdominal",cat:"gastro"},
+  {id:11,text:"Perda de apetite",cat:"gastro"},
+  {id:12,text:"Dor torácica / pressão no peito",cat:"cardio"},
+  {id:13,text:"Falta de ar / dificuldade para respirar",cat:"resp"},
+  {id:14,text:"Tosse",cat:"resp"},
+  {id:15,text:"Tosse com sangue",cat:"resp"},
+  {id:16,text:"Dor de garganta",cat:"resp"},
+  {id:17,text:"Rouquidão",cat:"resp"},
+  {id:18,text:"Perda de olfato",cat:"resp"},
+  {id:19,text:"Perda de paladar",cat:"resp"},
+  {id:20,text:"Cansaço extremo / fadiga",cat:"all"},
+  {id:21,text:"Dor muscular",cat:"all"},
+  {id:22,text:"Dor nas articulações",cat:"all"},
+  {id:23,text:"Formigamento / perda sensorial",cat:"neuro"},
+  {id:24,text:"Dificuldade para falar",cat:"neuro"},
+  {id:25,text:"Visão turva / dupla",cat:"neuro"},
+  {id:26,text:"Rigidez no pescoço",cat:"neuro"},
+  {id:27,text:"Erupção cutânea / manchas",cat:"skin"},
+  {id:28,text:"Coceira intensa",cat:"skin"},
+  {id:29,text:"Inchaço localizado",cat:"skin"},
+  {id:30,text:"Ferida que não cicatriza",cat:"skin"},
+  {id:31,text:"Sangramento anormal",cat:"all"},
+  {id:32,text:"Sangue na urina",cat:"gastro"},
+  {id:33,text:"Micção dolorosa / ardor",cat:"gastro"},
+  {id:34,text:"Urina escura / turva",cat:"gastro"},
+  {id:35,text:"Perda súbita de força (braço/perna)",cat:"neuro"},
+  {id:36,text:"Convulsões / tremores",cat:"neuro"},
+  {id:37,text:"Sudorese noturna / suor excessivo",cat:"all"},
+  {id:38,text:"Palpitações / batimentos acelerados",cat:"cardio"},
+  {id:39,text:"Febre alta persistente (>39°C)",cat:"all"},
+  {id:40,text:"Tosse persistente por dias",cat:"resp"},
+  {id:41,text:"Dificuldade para engolir",cat:"resp"},
+  {id:42,text:"Sede excessiva / desidratação",cat:"endo"},
+  {id:43,text:"Perda de peso inexplicada",cat:"endo"},
+  {id:44,text:"Ganho de peso inexplicável",cat:"endo"},
+  {id:45,text:"Fome excessiva",cat:"endo"},
+  {id:46,text:"Olhos vermelhos / conjuntivite",cat:"skin"},
+  {id:47,text:"Dor lombar intensa",cat:"all"},
+  {id:48,text:"Icterícia (pele/olhos amarelos)",cat:"gastro"},
+  {id:49,text:"Rouquidão prolongada",cat:"resp"},
+  {id:50,text:"Feridas na boca",cat:"skin"},
+  {id:51,text:"Nódulos/gânglios inchados",cat:"skin"},
+  {id:52,text:"Falta de coordenação / desequilíbrio",cat:"neuro"},
+  {id:53,text:"Sensibilidade à luz",cat:"neuro"},
+  {id:54,text:"Sensibilidade ao som",cat:"neuro"},
+  {id:55,text:"Pouca urina / sinais de desidratação",cat:"endo"},
+  {id:56,text:"Perda de apetite prolongada",cat:"gastro"},
+  {id:57,text:"Manchas roxas inexplicadas",cat:"skin"},
+  {id:58,text:"Sono excessivo / letargia",cat:"neuro"},
+  {id:59,text:"Nó na garganta / globus",cat:"resp"},
+  {id:60,text:"Dor localizada muito intensa",cat:"all"},
+  {id:61,text:"Sensação de ardor no peito (azia)",cat:"gastro"},
+  {id:62,text:"Respiração ruidosa / chiado",cat:"resp"},
+  {id:63,text:"Falta de ar ao deitar",cat:"resp"},
+  /* novos */
+  {id:64,text:"Nariz entupido / congestão",cat:"resp"},
+  {id:65,text:"Coriza",cat:"resp"},
+  {id:66,text:"Dor facial / pressão nos seios da face",cat:"resp"},
+  {id:67,text:"Dor de ouvido",cat:"oto"},
+  {id:68,text:"Zumbido no ouvido",cat:"oto"},
+  {id:69,text:"Perda auditiva súbita",cat:"oto"},
+  {id:70,text:"Dor ao urinar e febre",cat:"gastro"},
+  {id:71,text:"Queimação ao urinar",cat:"gastro"},
+  {id:72,text:"Dor pélvica",cat:"gastro"},
+  {id:73,text:"Inchaço generalizado (edema)",cat:"cardio"},
+  {id:74,text:"Tontura ao levantar (hipotensão)",cat:"cardio"},
+  {id:75,text:"Pele pálida (palidez)",cat:"all"},
+  {id:76,text:"Falta de ar súbita em repouso",cat:"resp"},
+  {id:77,text:"Dor nas costas ao respirar",cat:"resp"},
+  {id:78,text:"Dor que irradia para braço esquerdo",cat:"cardio"},
+  {id:79,text:"Ansiedade / sensação de pânico",cat:"all"},
+  {id:80,text:"Mãos trêmulas",cat:"all"},
+  {id:81,text:"Suor frio",cat:"cardio"},
+  {id:82,text:"Inchaço dos tornozelos",cat:"cardio"},
+  {id:83,text:"Nauseado com dor após comida gordurosa",cat:"gastro"},
+  {id:84,text:"Fezes escuras (melena)",cat:"gastro"},
+  {id:85,text:"Sangue nas fezes (hematoquezia)",cat:"gastro"},
+  {id:86,text:"Azia que piora ao deitar",cat:"gastro"},
+  {id:87,text:"Dor forte no lado direito do abdômen",cat:"gastro"},
+  {id:88,text:"Rigidez/articulação quente e inchada",cat:"all"},
+  {id:89,text:"Feridas genitais / dor ao urinar",cat:"gastro"},
+  {id:90,text:"Coceira anal",cat:"gastro"},
+  {id:91,text:"Fadiga com falta de ar leve ao esforço",cat:"cardio"},
+  {id:92,text:"Sensação de desmaio ao esforço",cat:"cardio"},
+  {id:93,text:"Ferida infectada (pus)",cat:"skin"},
+  {id:94,text:"Bolhas na pele",cat:"skin"},
+  {id:95,text:"Descamação da pele",cat:"skin"},
+  {id:96,text:"Dor de queimação nas pernas",cat:"cardio"},
+  {id:97,text:"Perda de pelos na perna (circulação)",cat:"cardio"},
+  {id:98,text:"Tosse noturna",cat:"resp"},
+  {id:99,text:"Exposição recente a doente com TB",cat:"resp"},
+  {id:100,text:"Dor retroesternal ao engolir",cat:"gastro"},
+  {id:101,text:"Vômitos com sangue (hematêmese)",cat:"gastro"},
+  {id:102,text:"Dor ocular / visão em halo",cat:"neuro"},
+  {id:103,text:"Fotofobia com dor de cabeça intensa",cat:"neuro"},
+  {id:104,text:"Rigidez súbita lombar com febre",cat:"all"},
+  {id:105,text:"Erupção em asa de borboleta no rosto",cat:"skin"},
+  {id:106,text:"Dor no joelho após trauma",cat:"all"},
+  {id:107,text:"Cólica intensa durante menstruação",cat:"gastro"},
+  {id:108,text:"Atraso menstrual com náusea",cat:"gastro"},
+  {id:109,text:"Descarga nasal amarelada espessa",cat:"resp"},
+  {id:110,text:"Dor ao mastigar (ATM/temporal)",cat:"all"},
+  {id:111,text:"Dor torácica ao respirar fundo",cat:"resp"},
+  {id:112,text:"Dedo azul/roxo doloroso",cat:"cardio"},
+  {id:113,text:"Dormência facial de um lado",cat:"neuro"},
+  {id:114,text:"Dor abdominal em cólica com diarreia",cat:"gastro"},
+  {id:115,text:"Fezes claras / acólicas",cat:"gastro"},
+  {id:116,text:"Coceira generalizada sem lesão",cat:"skin"},
+  {id:117,text:"Perda de cabelo difusa",cat:"endo"},
+  {id:118,text:"Sede noturna e fome com perda de peso",cat:"endo"},
+  {id:119,text:"Fraqueza muscular proximal",cat:"endo"},
+  {id:120,text:"Inchaço doloroso atrás do joelho",cat:"all"}
+];
+
+/* ---------------- Conditions DB: name -> { symptomId: weight } ---------------- */
+/* EXPANDIDO: +25 condições aproximadamente */
+const CONDITIONS_DB = {
+  "Gripe / Influenza": {1:0.8,3:0.5,14:0.4,20:0.5,2:0.3,16:0.2,65:0.3},
+  "Resfriado comum": {3:0.3,14:0.4,16:0.5,18:0.2,64:0.5,65:0.5},
+  "COVID-19 (possível)": {1:0.6,14:0.5,13:0.6,18:0.6,19:0.5,20:0.4,40:0.3},
+  "Pneumonia": {1:0.6,13:0.8,12:0.5,14:0.6,40:0.6,111:0.4,98:0.3},
+  "Bronquite": {14:0.6,40:0.6,21:0.2,62:0.3,98:0.3},
+  "Asma / Exacerbação asmática": {13:0.7,62:0.6,61:0.2,63:0.3,98:0.3},
+  "Sinusite (viral/bacteriana)": {64:0.5,65:0.5,66:0.7,109:0.6,3:0.3,16:0.2},
+  "Otite média / externa": {67:0.7,68:0.3,1:0.2,16:0.2,69:0.5},
+  "Infecção urinária / pielonefrite": {33:0.8,32:0.3,34:0.3,42:0.2,55:0.3,70:0.5,71:0.6,47:0.3},
+  "Gastroenterite (viral/bacteriana)": {7:0.5,8:0.6,9:0.7,10:0.4,114:0.5},
+  "Apendicite": {10:0.9,8:0.3,39:0.2,60:0.3,87:0.5},
+  "Colecistite / Cálculo biliar": {83:0.7,87:0.7,8:0.3,1:0.2},
+  "DRGE / Refluxo": {61:0.6,86:0.7,100:0.4,41:0.2},
+  "Dengue / Arbovirose": {1:0.6,27:0.4,21:0.4,37:0.4,39:0.3,57:0.2},
+  "Faringite / Amigdalite": {16:0.9,3:0.3,1:0.2,41:0.2,59:0.2},
+  "Alergia / Rinite alérgica": {28:0.7,46:0.5,18:0.2,16:0.2,64:0.4,65:0.4},
+  "AVC / Trombose": {35:0.9,24:0.9,52:0.6,23:0.5,113:0.6},
+  "Infarto agudo do miocárdio / isquemia": {12:0.9,38:0.5,13:0.3,61:0.2,78:0.6,81:0.3},
+  "Choque séptico / infecção grave": {39:0.6,5:0.6,31:0.4,55:0.5,1:0.2},
+  "Hepatite / doença hepática": {48:0.8,11:0.3,37:0.3,43:0.3,115:0.5},
+  "Insuficiência renal aguda / crônica": {34:0.6,42:0.3,32:0.4,55:0.3,47:0.2},
+  "Dermatose / Reação medicamentosa": {27:0.8,28:0.5,30:0.2,57:0.3,94:0.4,95:0.3},
+  "Crise convulsiva / epilepsia": {36:0.9,58:0.4,52:0.3},
+  "Enxaqueca / cefaleia tensional": {3:0.7,53:0.3,54:0.2,4:0.2,103:0.5},
+  "Úlcera oral / infecção bucal": {50:0.8,16:0.2,11:0.2},
+  "Mononucleose / infecciosa": {1:0.5,21:0.4,51:0.4,20:0.4},
+  "Tuberculose (suspeita)": {40:0.6,15:0.5,37:0.4,43:0.4,99:0.6},
+  "Insuficiência cardíaca": {13:0.4,63:0.6,82:0.6,73:0.4,91:0.4},
+  "Angina / Síndrome coronariana": {12:0.8,38:0.4,78:0.6,81:0.3,92:0.3},
+  "Anemia": {20:0.6,75:0.6,91:0.3,4:0.2},
+  "Gastrite / Úlcera péptica": {61:0.3,86:0.4,100:0.4,101:0.6,84:0.4},
+  "Hemorragia digestiva alta/baixa": {101:0.9,84:0.8,85:0.8,31:0.5},
+  "Doença inflamatória intestinal": {9:0.6,114:0.6,43:0.3,60:0.3,85:0.4},
+  "Cistite intersticial / outro urológico": {33:0.5,32:0.3,34:0.2,72:0.3},
+  "Dermatite atópica / eczema": {27:0.6,28:0.6,30:0.2,95:0.3,116:0.3},
+  "Psoríase": {27:0.4,95:0.6,94:0.4},
+  "Lúpus (suspeita dermatológica)": {27:0.4,105:0.7,21:0.3,43:0.3},
+  "Ansiedade / Ataque de pânico": {79:0.7,38:0.3,80:0.3,81:0.3,20:0.3},
+  "Hipertireoidismo / problemas endócrinos": {38:0.4,45:0.3,43:0.3,20:0.3,117:0.3},
+  "Hipotireoidismo": {20:0.4,44:0.3,117:0.4,119:0.3},
+  "Colelitíase (bexiga biliar)": {83:0.6,87:0.6,8:0.2},
+  "Apneia do sono (suspeita)": {98:0.3,63:0.3,20:0.3},
+  "Trombose venosa profunda": {96:0.5,112:0.6,60:0.3},
+  "Artrite séptica": {88:0.7,39:0.3,60:0.3},
+  "Glaucoma agudo (suspeita)": {102:0.7,25:0.3,53:0.3,3:0.2}
+};
+
+/* ---------------- Helpers: state ---------------- */
+const selected = new Set();
+let currentUser = null;
+
+/* ---------- Render symptom grid ---------- */
+const symGrid = document.getElementById("symGrid");
+const selectedCount = document.getElementById("selectedCount");
+const searchInput = document.getElementById("searchInput");
+const filterSelect = document.getElementById("filterSelect");
+
+function renderSymptoms(filterText=""){
+  symGrid.innerHTML = "";
+  const f = filterSelect.value;
+  const q = filterText.trim().toLowerCase();
+  SYMPTOMS.forEach(s=>{
+    if(f !== 'all' && s.cat !== f) return;
+    if(q && !s.text.toLowerCase().includes(q)) return;
+    const div = document.createElement("div");
+    div.className = "sym-card";
+    div.dataset.id = s.id;
+    div.innerHTML = `<input type="checkbox" aria-label="${escapeHtml(s.text)}"><div class="txt">${escapeHtml(s.text)}</div>`;
+    div.onclick = (ev)=>{
+      const cb = div.querySelector("input");
+      cb.checked = !cb.checked;
+      toggleSym(s.id, cb.checked, div);
+    };
+    symGrid.appendChild(div);
+  });
+  updateCount();
+}
+
+// toggling
+function toggleSym(id, isChecked, el){
+  if(isChecked){ selected.add(id); el.classList.add("checked"); }
+  else { selected.delete(id); el.classList.remove("checked"); }
+  updateCount();
+}
+function updateCount(){ selectedCount.textContent = selected.size; }
+
+/* -------------- Search & filter events -------------- */
+searchInput.addEventListener("input", ()=> renderSymptoms(searchInput.value));
+filterSelect.addEventListener("change", ()=> renderSymptoms(searchInput.value));
+
+/* -------------- Login / user -------------- */
+function saveUserLocally(name,email){
+  const list = JSON.parse(localStorage.getItem("ht_users")||"[]");
+  if(!list.find(u=>u.email===email)) list.push({name,email,created:Date.now()});
+  localStorage.setItem("ht_users", JSON.stringify(list));
+  localStorage.setItem("ht_current", JSON.stringify({name,email}));
+  currentUser = {name,email};
+  document.getElementById("userInfo").textContent = name;
+}
+function loadDemo(){ document.getElementById("nameInput").value="Teste"; document.getElementById("emailInput").value="teste@gmail.com"; showLoginMsg("Demo preenchido"); }
+function showLoginMsg(m){ const el=document.getElementById("loginMsg"); el.textContent=m; setTimeout(()=>{ if(el.textContent===m) el.textContent=""; },2500); }
+
+function handleLogin(){
+  const name = document.getElementById("nameInput").value.trim();
+  const email = document.getElementById("emailInput").value.trim().toLowerCase();
+  if(!name){ showLoginMsg("Digite seu nome."); return; }
+  if(!/^[^\s@]+@gmail\.com$/.test(email)){ showLoginMsg("Use um email Gmail válido."); return; }
+  saveUserLocally(name,email);
+  document.getElementById("loginCard").classList.add("hidden");
+  document.getElementById("symptomsCard").classList.remove("hidden");
+  renderSymptoms();
+  showLoginMsg("Bem-vindo, " + name);
+}
+
+/* -------------- Other / clear -------------- */
+function clearAll(){
+  selected.clear();
+  document.querySelectorAll(".sym-card").forEach(c=>{ c.classList.remove("checked"); c.querySelector("input").checked=false; });
+  document.getElementById("otherText").value = "";
+  updateCount();
+}
+
+/* -------------- Confirm symptoms -> dynamic questions -------------- */
+function confirmSymptoms(){
+  const arr = Array.from(selected);
+  const otherText = (document.getElementById("otherCheck").checked ? document.getElementById("otherText").value.trim() : "");
+  if(arr.length === 0 && !otherText){ alert("Selecione pelo menos um sintoma ou descreva 'Outros'"); return; }
+
+  // hide, show questions
+  document.getElementById("symptomsCard").classList.add("hidden");
+  document.getElementById("questionsCard").classList.remove("hidden");
+
+  const qWrap = document.getElementById("questionsWrap");
+  qWrap.innerHTML = "";
+
+  // base q's
+  qWrap.appendChild(elQuestion("dias","Há quantos dias os sintomas começaram?","number",{min:0,placeholder:"0"}));
+  qWrap.appendChild(elQuestion("febre","Você está com febre agora?","select",{options:["Não","Sim (<=38°C)","Sim (>38°C)"]}));
+
+  // respiratory
+  const respIds = [12,13,14,15,40,61,62,63,64,65,66,98,109,111];
+  if(arr.some(id=>respIds.includes(id))){
+    qWrap.appendChild(elQuestion("resp_worse","A falta de ar piora ao esforço?","select",{options:["Não","Sim"]}));
+    qWrap.appendChild(elQuestion("hemop","Tosse com sangue?","select",{options:["Não","Sim"]}));
+  }
+
+  // abdominal/gastro
+  const gastro = [7,8,9,10,11,83,87,84,85,86,100,101,114,115];
+  if(arr.some(id=>gastro.includes(id))){
+    qWrap.appendChild(elQuestion("v_freq","Vômitos nas últimas 24h (nº)","number",{min:0,placeholder:"0"}));
+    qWrap.appendChild(elQuestion("abd_local","A dor abdominal é localizada e intensa?","select",{options:["Não","Sim"]}));
+  }
+
+  // neuro / stroke
+  const neuro = [23,24,25,35,36,52,4,5,102,103,113];
+  if(arr.some(id=>neuro.includes(id))){
+    qWrap.appendChild(elQuestion("sudden","Início: súbito (horas) ou gradual (dias)?","select",{options:["Gradual (dias)","Súbito (horas)"]}));
+    qWrap.appendChild(elQuestion("seiz","Convulsões/episódios?","select",{options:["Não","Sim"]}));
+  }
+
+  // skin
+  const skin = [27,28,30,57,93,94,95,105,116];
+  if(arr.some(id=>skin.includes(id))){
+    qWrap.appendChild(elQuestion("rash_fever","Houve febre junto com a erupção?","select",{options:["Não","Sim"]}));
+    qWrap.appendChild(elQuestion("rash_spread","As manchas estão se espalhando?","select",{options:["Não","Sim"]}));
+  }
+
+  // urinary
+  const uro = [32,33,34,55,70,71,72];
+  if(arr.some(id=>uro.includes(id))){
+    qWrap.appendChild(elQuestion("urine_pain","Há dor lombar intensa associada?","select",{options:["Não","Sim"]}));
+    qWrap.appendChild(elQuestion("urine_blood","Percebeu sangue visível na urina?","select",{options:["Não","Sim"]}));
+  }
+
+  // cardio
+  const cardio = [12,38,73,74,78,81,82,91,92,96,112];
+  if(arr.some(id=>cardio.includes(id))){
+    qWrap.appendChild(elQuestion("cardio_risk","Tem fatores de risco (hipertensão/diabetes/tabagismo)?","select",{options:["Não","Sim"]}));
+  }
+
+  // others free
+  qWrap.appendChild(elQuestion("notes","Observações adicionais (opcional)","text"));
+
+  const tip = document.createElement("div"); tip.className="muted"; tip.style.marginTop="8px";
+  tip.textContent = "As perguntas aumentam a precisão das hipóteses. Em seguida será exibido um resultado estimado com probabilidades.";
+  qWrap.appendChild(tip);
+}
+
+function elQuestion(key,label,type="text",opts={}){
+  const wrap = document.createElement("div"); wrap.className="question";
+  wrap.dataset.key = key;
+  const lab = document.createElement("label"); lab.textContent = label;
+  const fieldWrap = document.createElement("div"); fieldWrap.style.flex = "1";
+  if(type === "select"){
+    const sel = document.createElement("select");
+    if(opts.options) opts.options.forEach(o=>{ const op = document.createElement("option"); op.textContent = o; sel.appendChild(op); });
+    fieldWrap.appendChild(sel);
+  } else if(type === "number"){
+    const inp = document.createElement("input"); inp.type="number"; if(opts.min!==undefined) inp.min=opts.min; inp.placeholder = opts.placeholder||"";
+    fieldWrap.appendChild(inp);
+  } else {
+    const inp = document.createElement("input"); inp.type="text"; inp.placeholder = opts.placeholder || "";
+    fieldWrap.appendChild(inp);
+  }
+  wrap.appendChild(lab); wrap.appendChild(fieldWrap);
+  return wrap;
+}
+
+function backToSymptoms(){ document.getElementById("questionsCard").classList.add("hidden"); document.getElementById("symptomsCard").classList.remove("hidden"); }
+
+/* -------------- Run diagnosis (heuristic scoring) -------------- */
+function runDiagnosis(){
+  const ids = Array.from(selected);
+  const otherText = (document.getElementById("otherCheck").checked ? document.getElementById("otherText").value.trim() : "");
+  const qEls = Array.from(document.querySelectorAll("#questionsWrap .question"));
+  const answers = {};
+  qEls.forEach(q=>{ const key=q.dataset.key; const input=q.querySelector("input, select"); answers[key]=input?input.value:null; });
+
+  // show loading
+  document.getElementById("questionsCard").classList.add("hidden");
+  document.getElementById("resultCard").classList.remove("hidden");
+  const loadingArea = document.getElementById("loadingArea");
+  loadingArea.innerHTML = `<div class="loader"><i></i></div><div class="muted" style="margin-top:6px">Analisando — isso pode levar alguns instantes...</div>`;
+  document.getElementById("finalArea").classList.add("hidden");
+
+  setTimeout(()=>{
+    const ranked = evaluateConditions(ids, otherText, answers);
+    const severityObj = determineSeverity(ids, ranked, answers);
+    showFinal(ranked, severityObj);
+  }, 1100);
+}
+
+/* Evaluate conditions */
+function evaluateConditions(selectedIds, otherText, answers){
+  const scores = {};
+  for(const [cond,mapping] of Object.entries(CONDITIONS_DB)){
+    let score=0, maxPossible=0;
+    for(const [sId, w] of Object.entries(mapping)){
+      maxPossible += w;
+      if(selectedIds.includes(Number(sId))) score += w;
+    }
+    // bônus com palavras-chave de "Outros"
+    if(otherText){
+      const txt = otherText.toLowerCase();
+      if(cond.toLowerCase().split(/[\s/()]+/).some(part=> part && txt.includes(part))) score += 0.05;
+      SYMPTOMS.forEach(s=>{
+        if(txt.includes(s.text.toLowerCase())){ if(mapping[s.id]) score += mapping[s.id]*0.5; }
+      });
+    }
+    const norm = maxPossible>0 ? Math.min(1, score/maxPossible) : 0;
+    scores[cond] = parseFloat(norm.toFixed(4));
+  }
+  const arr = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+  return arr;
+}
+
+/* Determine severity */
+function determineSeverity(selectedIds, ranked, answers){
+  const alarmSet = new Set([
+    13,12,5,35,24,36,15,6,31,39,76,78,101,84,85
+  ]); // red flags ampliados
+  if(selectedIds.some(s=>alarmSet.has(s))) return {level:"VERMELHO",cls:"vermelho",explanation:"Sinais de alarme detectados. Procure emergência imediatamente."};
+  const [topName, topScore] = ranked[0] || ["Nenhuma",0];
+  const serious = ["Pneumonia","Choque séptico","Infarto","AVC","Hemorragia","Trombose","Tuberculose"];
+  if(topScore >= 0.55 && serious.some(x=> topName.toLowerCase().includes(x.toLowerCase()) )) return {level:"LARANJA",cls:"laranja",explanation:`Possibilidade de condição grave (${topName}). Procure avaliação urgente.`};
+  if(answers.febre && typeof answers.febre==="string" && answers.febre.includes(">38")) return {level:"AMARELO",cls:"amarelo",explanation:"Febre alta observada — recomenda-se avaliação clínica em breve."};
+  if(topScore >= 0.35) return {level:"AMARELO",cls:"amarelo",explanation:`Condição possível: ${topName} (estimativa). Marque avaliação médica.`};
+  if(selectedIds.length <= 2) return {level:"AZUL",cls:"azul",explanation:"Sintomas leves — autocuidado e observação. Procure médico se piorar."};
+  return {level:"VERDE",cls:"verde",explanation:"Sintomas moderados — monitorar e procurar atenção primária se persistir."};
+}
+
+/* Show final */
+function showFinal(ranked, severityObj){
+  document.getElementById("loadingArea").innerHTML = "";
+  document.getElementById("finalArea").classList.remove("hidden");
+
+  const topN = 10;
+  const top = ranked.slice(0, topN);
+  const scores = top.map(x=>x[1]);
+  const sum = scores.reduce((a,b)=>a+b,0);
+  const percentList = top.map(([name,score])=>{
+    const pct = sum>0 ? Math.round((score/sum)*100) : Math.round(score*100);
+    return {name,score,pct};
+  });
+
+  const badge = document.getElementById("severityBadge");
+  badge.className = "severity " + severityObj.cls;
+  badge.textContent = severityObj.level;
+
+  document.getElementById("actionText").textContent = severityObj.explanation;
+
+  const list = document.getElementById("diagnosisList"); list.innerHTML = "";
+  let any=false;
+  percentList.forEach(item=>{
+    if(item.score <= 0) return;
+    any=true;
+    const el = document.createElement("div"); el.className="diag-item fade";
+    const left = document.createElement("div"); left.style.fontWeight="700"; left.textContent = item.name;
+    const right = document.createElement("div"); right.style.textAlign="right";
+    right.innerHTML = `<div class="percent">${item.pct}%</div><div class="muted" style="font-size:12px">${recommendationFor(item.name, severityObj.level)}</div>`;
+    el.appendChild(left); el.appendChild(right);
+    list.appendChild(el);
+  });
+  if(!any){
+    list.innerHTML = `<div class="muted">Nenhuma hipótese dominante encontrada a partir dos sintomas selecionados. Observe e reavalie se piorar.</div>`;
+  }
+  document.getElementById("finalArea").scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+/* recommendation snippets (no meds) */
+function recommendationFor(name, severity){
+  const lower = name.toLowerCase();
+  if(lower.includes("pneumonia") || lower.includes("infarto") || lower.includes("avc") || lower.includes("choque") || lower.includes("hemorragia") || lower.includes("trombose")) return "Procure emergência imediatamente.";
+  if(lower.includes("tb") || lower.includes("tuberculose")) return "Procure avaliação médica e serviços de triagem específicos.";
+  if(lower.includes("infecção urinária") || lower.includes("gastroenterite") || lower.includes("apendicite") || lower.includes("colecist")) return "Procure atendimento primário ou emergência conforme intensidade da dor/febre.";
+  if(lower.includes("alerg") || lower.includes("dermat") || lower.includes("psor")) return "Higiene, evitar alérgenos; consulte dermatologista se persistir.";
+  return "Acompanhamento ambulatorial; hidratação e repouso; procure médico se houver piora.";
+}
+
+/* Save report local */
+function saveReport(){
+  const report = {
+    ts: Date.now(),
+    user: currentUser,
+    selected: Array.from(selected),
+    other: document.getElementById("otherText").value || "",
+    resultTime: new Date().toISOString()
+  };
+  const prev = JSON.parse(localStorage.getItem("ht_reports")||"[]");
+  prev.unshift(report);
+  localStorage.setItem("ht_reports", JSON.stringify(prev.slice(0,50)));
+  alert("Relatório salvo localmente.");
+}
+
+/* restart */
+function restart(){
+  selected.clear();
+  document.querySelectorAll(".sym-card").forEach(c=>{ c.classList.remove("checked"); if(c.querySelector("input")) c.querySelector("input").checked=false; });
+  document.getElementById("otherText").value = "";
+  document.getElementById("otherCheck").checked = false;
+  document.getElementById("resultCard").classList.add("hidden");
+  document.getElementById("symptomsCard").classList.remove("hidden");
+  updateCount();
+}
+
+/* small helpers */
+function escapeHtml(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* hook change on checkbox in symptom cards */
+document.addEventListener("change", function(e){
+  if(e.target && e.target.closest(".sym-card")){
+    const card = e.target.closest(".sym-card");
+    const id = Number(card.dataset.id);
+    toggleSym(id, e.target.checked, card);
+  }
+});
+
+/* theme toggle with wave */
+const themeToggle = document.getElementById("themeToggle");
+themeToggle.addEventListener("click", ()=>{
+  const body = document.body;
+  const cur = body.getAttribute("data-theme");
+  if(cur === "dark"){ body.setAttribute("data-theme","light"); localStorage.setItem("ht_theme","light"); }
+  else { body.setAttribute("data-theme","dark"); localStorage.setItem("ht_theme","dark"); }
+});
+(function initTheme(){
+  const t = localStorage.getItem("ht_theme") || "dark";
+  document.body.setAttribute("data-theme", t);
+})();
+
+/* init render */
+document.addEventListener("DOMContentLoaded", ()=>{
+  renderSymptoms();
+  // restore last user if exists
+  const u = JSON.parse(localStorage.getItem("ht_current")||"null");
+  if(u){ currentUser = u; document.getElementById("userInfo").textContent = u.name; document.getElementById("loginCard").classList.add("hidden"); document.getElementById("symptomsCard").classList.remove("hidden"); }
+});
+</script>
+</body>
+</html>
